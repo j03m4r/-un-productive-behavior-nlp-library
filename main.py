@@ -1,12 +1,13 @@
 from dotenv import load_dotenv
-import math
 from modules import Evaluator
+from textstat import smog_index
 from modules.hate_speech.hate_speech import HateSpeechEvaluator
 from modules.toxicity import ToxicityEvaluator
 from modules.sentiment import SentimentEvaluator
 from modules.constructiveness import ConstructivenessEvaluator
 from modules.relevance import RelevanceEvaluator
 from modules.idea_adoption import IdeaAdoptionEvaluator
+from modules.linguistic_style_matching import LSMEvaluator
 
 load_dotenv(".env.local")
 
@@ -20,6 +21,7 @@ class EnsembleEvaluator(Evaluator):
         self.constructiveness_evaluator = ConstructivenessEvaluator()
         self.relevance_evaluator = RelevanceEvaluator()
         self.idea_adoption_evaluator = IdeaAdoptionEvaluator()
+        self.lsm_evaluator = LSMEvaluator()
 
         self.utterance_evaluators: list[Evaluator] = [
             self.hate_speech_evaluator,
@@ -57,8 +59,9 @@ class EnsembleEvaluator(Evaluator):
             count = 0
             for text in conversation:
                 text = text.lower()
+                word_set = set(text.split())
                 for self_reference in self_references:
-                    if self_reference in text:
+                    if self_reference in word_set:
                         count += 1
                         break # counting utterances containing at least 1 self-disclosure
             return count
@@ -66,7 +69,7 @@ class EnsembleEvaluator(Evaluator):
         social_cohesion = {
             "num_dialogue_exchanges": len(participant_utterances),
             "num_self_disclosure_utterances": count_self_disclosure_utterances(participant_utterances),
-            # TODO :: Implement linguistic style matching
+            "avg_lsm_score": self.lsm_evaluator.evaluate_conversation(conversation)["avg_lsm_score"],
             "num_ideas_adopted": self.idea_adoption_evaluator.evaluate_conversation(conversation)["participant_2"]["num_ideas_adopted"]
         }
 
@@ -82,10 +85,16 @@ class EnsembleEvaluator(Evaluator):
                 "avg_words": total_words / num_utterances if num_utterances > 0 else 0,
                 "avg_chars": total_chars / num_utterances if num_utterances > 0 else 0
             }
+        
+        def calculate_avg_readability(utterances):
+            sum_smog_score = 0
+            for utterance in utterances:
+                sum_smog_score += smog_index(utterance)
+            return sum_smog_score / len(utterances)
 
         general_engagement = {
-            **calculate_utterance_stats(participant_utterances)
-            # TODO :: Calculate average readibility score of participant utterances
+            **calculate_utterance_stats(participant_utterances),
+            "average_readability": calculate_avg_readability(participant_utterances)
         }
 
         return {
@@ -95,11 +104,13 @@ class EnsembleEvaluator(Evaluator):
             },
             "Social Cohesion": social_cohesion,
             "num_irrelevant_messages": num_irrelevant_utterances,
-            "General Engagement": general_engagement
+            "General Engagement": general_engagement,
+            "Sentiment": self.sentiment_evaluator.evaluate_conversation(participant_utterances)
         }
 
 if __name__ == "__main__":
-    post_text = """Rich people pay too much in taxes. Period.
+    conversation = [
+        """Rich people pay too much in taxes. Period.
 
     I’m tired of hearing the same nonsense: “The rich don’t pay taxes because of loopholes.” That’s just not true. It’s lazy thinking and, frankly, intellectually dishonest.
 
@@ -113,9 +124,16 @@ if __name__ == "__main__":
 
     I’m not saying the system’s perfect. But don’t buy into the lazy narrative that wealthy people are somehow dodging everything. Most high earners do pay an enormous amount, not just in income taxes, but on investment returns, estates, and more.
 
-    If you want to argue about fairness, fine. But let’s at least get the facts straight first.
-    """
-    response_text = "In capitalism, the metric for earning capital is labor. The more productive one's labor, the more wealth they are rewarded with. How productive are shareholders? Do they actively produce anything of value? I would argue that no, they do not. And yet, shareholders hold a vastly disproportionate amount of wealth. Naturally, we should tax them significantly and give this taxed wealth to the people who actually produce."
+    If you want to argue about fairness, fine. But let’s at least get the facts straight first.""",
+        """In capitalism, the metric for earning capital is labor. The more productive one's labor, the more wealth they are rewarded with. How productive are shareholders? Do they actively produce anything of value? I would argue that no, they do not. And yet, shareholders hold a vastly disproportionate amount of wealth. Naturally, we should tax them significantly and give this taxed wealth to the people who actually produce.""",
+        """What naive garbage. Shareholders literally provide the CAPITAL that makes production possible in the first place. Without their investment, your precious "productive laborers" would be sitting around with zero tools, factories, or resources to be "productive" with. 
+    Risk capital IS productive value - it's what transforms ideas into reality. Your fantasy redistribution scheme would destroy the very foundation that creates jobs and wealth for everyone.""",
+        """I am not saying that shareholders should have no say in the functions of a capitalistic society (Whether or not I agree with capitalism is a different story). They just shouldn't be in possession of the vast majority of wealth when they aren't the ones doing the labor.""",
+        """You're missing the point entirely. Shareholders don't just "possess" wealth - they EARNED it by risking their capital when others wouldn't. That's labor too, just intellectual and financial labor. 
+    Meanwhile, workers get guaranteed paychecks regardless of company performance. Shareholders? They can lose everything overnight. Higher risk, higher reward. Your "fair share" nonsense ignores that shareholders already bear all the downside risk while workers face none.""",
+        """They did not earn wealth. They pay laborers to create wealth, then take the vast majority of it for themselves. This is not even to mention the entrenched corporate interests that have bailed out shareholders at many points throughout American history (e.g. the housing market crash). So no, there is very little risk. Also corporations can fire workers without consequence if it appears better to shareholders. It is a far less risky business to be a shareholder."""
+    ]
+
     ensemble_evaluator = EnsembleEvaluator()
-    result = ensemble_evaluator.evaluate_conversation([post_text, response_text])
+    result = ensemble_evaluator.evaluate_conversation(conversation)
     print(result)

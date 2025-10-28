@@ -9,3 +9,9 @@ class SentimentEvaluator(Evaluator):
     def evaluate_utterance(self, text: str) -> dict:
         score = self.analyzer.polarity_scores(text)
         return score
+
+    def evaluate_conversation(self, conversation):
+        scores = []
+        for utterance in conversation:
+            scores.append(self.evaluate_utterance(utterance))
+        return scores

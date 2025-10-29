@@ -29,7 +29,7 @@ class ToxicityEvaluator(Evaluator):
 
     def evaluate_conversation(self, conversation: list[str]) -> dict:
         res = {
-            "labels": {
+            "aggregate": {
                 "non-toxic": 0, 
                 "toxic": 0,
                 "highly-toxic": 0
@@ -39,10 +39,10 @@ class ToxicityEvaluator(Evaluator):
 
         for text in conversation:
             _res = self.evaluate_utterance(text)
-            res["labels"][_res["label"]] += 1
+            res["aggregate"][_res["label"]] += 1
             res["utterances"].append(_res)
 
         for label in ["non-toxic", "toxic", "highly-toxic"]:
-            res["labels"][label] /= len(conversation)
+            res["aggregate"][label] /= len(conversation)
 
         return res

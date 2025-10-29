@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from modules import Evaluator
 from textstat import smog_index
+from pathlib import Path
+import json, subprocess
 from modules.hate_speech.hate_speech import HateSpeechEvaluator
 from modules.toxicity import ToxicityEvaluator
 from modules.sentiment import SentimentEvaluator
@@ -97,6 +99,37 @@ class EnsembleEvaluator(Evaluator):
             "average_readability": calculate_avg_readability(participant_utterances)
         }
 
+        def calculate_argumentative_features(utterances):
+            res = {
+                "aggregate": {
+
+                },
+                "utterances": []
+            }
+
+            for utterance in utterances:
+                r_script = Path(__file__).resolve().parent / "r" / "politeness_eval.R"
+                cmd = ["Rscript", str(r_script), utterance]
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                )
+                if result.returncode != 0 or not result.stdout.strip():
+                    print("R STDERR:\n", result.stderr)
+                    print("R STDOUT:\n", result.stdout)
+                    raise RuntimeError(f"Rscript failed (exit {result.returncode})")
+                politeness_dict = json.loads(result.stdout)
+                res["utterances"].append(politeness_dict)
+
+                for key in politeness_dict.keys(): # averaging for each respective feature, maybe we should just sum all features into one number
+                    res['aggregate'][key] = res['aggregate'].get(key, 0) + politeness_dict[key] 
+
+            for key in res['aggregate'].keys():
+                res['aggregate'][key] /= len(res['utterances'])
+            
+            return res
+
         return {
             "Antisocialness": {
                 self.toxicity_evaluator.name: toxicity_res,
@@ -105,7 +138,8 @@ class EnsembleEvaluator(Evaluator):
             "Social Cohesion": social_cohesion,
             "num_irrelevant_messages": num_irrelevant_utterances,
             "General Engagement": general_engagement,
-            "Sentiment": self.sentiment_evaluator.evaluate_conversation(participant_utterances)
+            "Sentiment": self.sentiment_evaluator.evaluate_conversation(participant_utterances),
+            "Argumentative Features": calculate_argumentative_features(participant_utterances)
         }
 
 if __name__ == "__main__":

@@ -11,7 +11,20 @@ class SentimentEvaluator(Evaluator):
         return score
 
     def evaluate_conversation(self, conversation):
-        scores = []
+        res = {
+            "aggregate": {
+
+            },
+            "utterances": []
+        }
+
         for utterance in conversation:
-            scores.append(self.evaluate_utterance(utterance))
-        return scores
+            score = self.evaluate_utterance(utterance)
+            res["utterances"].append(score)
+            for key in score.keys():
+                res['aggregate'][key] = res['aggregate'].get(key, 0) + score[key] 
+
+        for key in res['aggregate'].keys():
+            res['aggregate'][key] /= len(res['utterances'])
+
+        return res

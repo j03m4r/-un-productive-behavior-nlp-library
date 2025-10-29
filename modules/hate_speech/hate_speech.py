@@ -26,7 +26,7 @@ class HateSpeechEvaluator(Evaluator):
 
     def evaluate_conversation(self, conversation: list[str]):
         res = {
-            "labels": {
+            "aggregate": {
                 "non-hate": 0, 
                 "hate": 0,
             },
@@ -35,10 +35,10 @@ class HateSpeechEvaluator(Evaluator):
 
         for text in conversation:
             _res = self.evaluate_utterance(text)
-            res["labels"][_res["label"]] += 1
+            res["aggregate"][_res["label"]] += 1
             res["utterances"].append(_res)
 
         for label in ["non-hate", "hate"]:
-            res["labels"][label] /= len(conversation)
+            res["aggregate"][label] /= len(conversation)
 
         return res

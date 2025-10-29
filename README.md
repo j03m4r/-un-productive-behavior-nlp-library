@@ -1,4 +1,4 @@
-## Composite framework for capturing different indicators of (un)productive behavior in text
+## Composite framework for capturing indicators of (un)productive behavior in text
 
 **Requires**:
 * R installation

@@ -169,5 +169,9 @@ if __name__ == "__main__":
     ]
 
     ensemble_evaluator = EnsembleEvaluator()
+    print("-- EVALUATING PRE-INTERVENTION RESPONSE --")
+    result = ensemble_evaluator.evaluate_utterance_pair(conversation[0], conversation[1])
+    print(result)
+    print("\n-- EVALUATING PARTICIPANT-LLM CONVERSATION --")
     result = ensemble_evaluator.evaluate_conversation(conversation)
     print(result)

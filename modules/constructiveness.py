@@ -143,6 +143,7 @@ class ConstructivenessEvaluator(Evaluator):
 
     def __init__(self):
         super().__init__(name="Constructiveness")
+        self.nlp = spacy.load("en_core_web_sm")
 
     def evaluate_utterance(self, text: str) -> dict:
         word_count = len(text.split())
@@ -163,8 +164,7 @@ class ConstructivenessEvaluator(Evaluator):
         politeness_dict = json.loads(result.stdout)
 
         # Counting named entities
-        nlp = spacy.load("en_core_web_sm")
-        doc = nlp(text)
+        doc = self.nlp(text)
         num_entities = len(doc.ents)
 
         # Counting argumentative features
@@ -203,7 +203,7 @@ class ConstructivenessEvaluator(Evaluator):
                             argumentative_features["full_root_clauses"] = argumentative_features.get("full_root_clauses", 0) + 1
                         else:
                             argumentative_features["partial_root_clauses"] = argumentative_features.get("partial_root_clauses", 0) + 1
-
+                            
         return {
             "word_count": word_count,
             "readability": readability,

@@ -1,0 +1,25 @@
+2026-02-27 14:22:13,532 [INFO] coro-1 | pool: 1000 | len: 1000 | time: 1.08
+2026-02-27 14:22:13,563 [INFO] coro-2 | pool: 1000 | len: 1000 | time: 1.07
+2026-02-27 14:22:13,587 [INFO] coro-3 | pool: 1000 | len: 1000 | time: 1.07
+2026-02-27 14:22:16,194 [INFO] coro-1 | pool: 1000 | len: 999 | time: 0.47
+2026-02-27 14:22:16,195: ERROR - Task has been cancelled!: (CancelledError(),)
+2026-02-27 14:22:16,195 [ERROR] Task has been cancelled!: (CancelledError(),)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/joemar/Documents/research/argumentative_convo_mod/prosociality_evaluator/cmv_reddit_score_regression/generate_corpus.py", line 45, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/usr/lib64/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/usr/lib64/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/lib64/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/joemar/Documents/research/argumentative_convo_mod/prosociality_evaluator/cmv_reddit_score_regression/generate_corpus.py", line 41, in main
+    log.info(f"  [cmv] {len(subs)} submissions")
+                        ~~~^^^^^^
+TypeError: object of type 'NoneType' has no len()

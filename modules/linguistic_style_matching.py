@@ -51,7 +51,7 @@ class LSMEvaluator(Evaluator):
             "yesterday", "yet"
         }
         self.negations = {
-            "not", "nor", "no", "nowhere",
+            "not", "nor", "no", "nowhere", "cannot",
             "isn't", "aren't", "wasn't", "weren't", "haven't", "hasn't", 
             "hadn't", "won't", "wouldn't", "don't", "doesn't", "didn't", 
             "can't", "couldn't", "shouldn't", "mightn't", "mustn't", "shan't"

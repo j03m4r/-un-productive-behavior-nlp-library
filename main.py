@@ -166,13 +166,7 @@ class EnsembleEvaluator(Evaluator):
             "Argumentative Features": calculate_argumentative_features(participant_utterances)
         }
 
-def calculate_prosociality_score(metrics):
-    """
-    Calculate a composite prosociality score (0-1 scale)
-    Higher score = more constructive/productive discourse
-    """
-    
-    # Extract metrics
+def calculate_prosociality_score(metrics): 
     hate_score = metrics['Hate Speech']['score']
     toxicity_score = metrics['Toxicity']['score']
     readability = metrics['Constructiveness']['readability']
@@ -180,17 +174,14 @@ def calculate_prosociality_score(metrics):
     politeness = metrics['Constructiveness']['politeness']
     arg_features = metrics['Constructiveness']['argumentative_features']
     
-    # Component 1: Safety (35% weight)
     safety_score = 1 - max(hate_score, toxicity_score)
     safety_score = max(0, safety_score)
     
-    # Component 2: Argumentative Quality (30% weight)
     discourse_norm = min(arg_features['discourse_connectives'] / 7, 1)
     stance_norm = min(arg_features['stance_adverbials'] / 4, 1)
     reasoning_norm = min(arg_features['reasoning_verbs'] / 3, 1)
     arg_quality = (discourse_norm + stance_norm + reasoning_norm) / 3
     
-    # Component 3: Politeness/Civility (25% weight)
     positive_politeness = (
         politeness['Hedges'] + 
         politeness['Please'] + 
@@ -206,7 +197,6 @@ def calculate_prosociality_score(metrics):
         politeness['Bare.Command']
     )
     
-    # Penalize negative markers more heavily
     if positive_politeness + negative_politeness == 0:
         politeness_score = 0.25
     else:
@@ -214,12 +204,10 @@ def calculate_prosociality_score(metrics):
         politeness_score = politeness_ratio * math.exp(-0.4 * negative_politeness)
         politeness_score = min(politeness_score, 1)
     
-    # Component 4: Substantiveness (10% weight)
     word_count_norm = 1 / (1 + math.exp(-0.03 * (word_count - 75)))
     readability_score = max(0, 1 - abs(readability - 10) / 20)
     substantiveness = (word_count_norm + readability_score) / 2
     
-    # Combine components
     composite_score = (
         safety_score * 0.35 +    
         arg_quality * 0.30 +     

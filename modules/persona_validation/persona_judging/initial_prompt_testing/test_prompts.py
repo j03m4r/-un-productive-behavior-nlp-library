@@ -96,7 +96,7 @@ if __name__ == "__main__":
         data = json.load(f)
     
     heldout_set = data["heldout"]
-    client = genai.Client(api_key="AIzaSyBJWIFel4VgZFERkA8HxRX2epOrBouZhGg")
+    client = genai.Client(api_key="")
 
     heldout_judgements = {}
     for seed_id, convo_instances in heldout_set.items():

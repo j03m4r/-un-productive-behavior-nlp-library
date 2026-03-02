@@ -5,3 +5,5 @@ modules/hate_speech/HateBERT_hateval
 */__pycache__
 
 __pycache__
+
+.env

@@ -167,7 +167,7 @@ def load_failed_conversation(path: str) -> dict:
             return data  # Just return the first one for reference
     except FileNotFoundError:
         print("No previous extraction failures found.")
-    return None
+    return {}
 
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

@@ -1,13 +1,14 @@
 from modules import Evaluator
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from transformers import pipeline
 
 class SentimentEvaluator(Evaluator):
     def __init__(self):
         super().__init__(name="Sentiment")
-        self.analyzer = SentimentIntensityAnalyzer()
+        self.analyzer = pipeline("sentiment-analysis", model="cardiffnlp/twitter-roberta-base-sentiment-latest", top_k=None, tokenizer="cardiffnlp/twitter-roberta-base-sentiment-latest")
 
     def evaluate_utterance(self, text: str) -> dict:
-        score = self.analyzer.polarity_scores(text)
+        score = self.analyzer(text)
         return score
 
     def evaluate_conversation(self, conversation):
